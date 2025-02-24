@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getUserInfo, updateUserProfile, type User } from "@/lib/api"
+import {  updateUserProfile, type User } from "@/lib/api"
 import { toast } from "@/components/ui/use-toast"
 
 export default function ProfilePage() {
@@ -89,6 +89,8 @@ export default function ProfilePage() {
     return <div>Loading...</div>
   }
 
+  
+
   return (
     <div className="container mx-auto p-4">
       <Card className="mb-8">
@@ -110,7 +112,7 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold">{user.name}</h2>
+                  <h2 className="text-2xl font-bold">{user.bio}</h2>
                   <p className="text-gray-600">{user.email}</p>
                   <p className="mt-2">{user.bio}</p>
                 </>
