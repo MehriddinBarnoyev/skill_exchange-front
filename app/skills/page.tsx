@@ -28,12 +28,10 @@ export default function SkillsPage() {
           return
         }
         const fetchedSkills = await getAllSkillsWithUsers(token)
-        console.log("Fetched skills:", fetchedSkills);
         
         setSkills(fetchedSkills)
         setFilteredSkills(fetchedSkills)
       } catch (error) {
-        console.error("Failed to fetch skills:", error)
         toast({
           title: "Error",
           description: "Failed to fetch skills. Please try again.",
@@ -69,7 +67,6 @@ export default function SkillsPage() {
     )
   }
 
-  console.log(skills);
   
   return (
     <div className="container mx-auto p-4 bg-gray-50 min-h-screen">

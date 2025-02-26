@@ -17,7 +17,7 @@ export interface User {
 
 export interface Skill {
   id: string
-  skill_name: string
+  name: string
   description: string
 }
 
@@ -94,6 +94,10 @@ export async function getUserSkills(token: string, userId: string): Promise<Skil
     const response = await api.get<Skill[]>(`/skills/user/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
+    console.log(userId);
+    console.log(response.data);
+    
+    
     return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to fetch user skills")
@@ -126,6 +130,8 @@ export async function updateSkill(token: string, skillId: string, skill: Partial
     const response = await api.put<Skill>(`/skills/${skillId}`, skill, {
       headers: { Authorization: `Bearer ${token}` },
     })
+    console.log(skillId, skill);
+    
     return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to update skill")
@@ -147,7 +153,6 @@ export async function getAllSkillsWithUsers(token: string): Promise<SkillWithUse
     const response = await api.get<SkillWithUser[]>("/skills", {
       headers: { Authorization: `Bearer ${token}` },
     })
-    console.log("response", response);
     
     return response.data
   } catch (error: any) {

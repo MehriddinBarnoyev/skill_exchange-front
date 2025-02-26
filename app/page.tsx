@@ -22,14 +22,7 @@ export default function Home() {
             <p className="mt-3 max-w-md mx-auto text-xl sm:text-2xl md:mt-5 md:max-w-3xl">
               Connect with others, exchange knowledge, and grow together.
             </p>
-            <div className="mt-10 flex justify-center gap-4">
-              <Button asChild size="lg">
-                <Link href="/register">Sign Up</Link>
-              </Button>
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/skills">Browse Skills</Link>
-              </Button>
-            </div>
+            
           </div>
         </div>
       </section>
