@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { getAllSkillsWithUsers, type SkillWithUser } from "@/lib/api"
 import { toast } from "@/components/ui/use-toast"
+import { Loader2 } from "lucide-react"
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<SkillWithUser[]>([])
@@ -27,6 +28,8 @@ export default function SkillsPage() {
           return
         }
         const fetchedSkills = await getAllSkillsWithUsers(token)
+        console.log("Fetched skills:", fetchedSkills);
+        
         setSkills(fetchedSkills)
         setFilteredSkills(fetchedSkills)
       } catch (error) {
@@ -44,13 +47,12 @@ export default function SkillsPage() {
     fetchSkills()
   }, [])
 
-  
   useEffect(() => {
     const filtered = skills.filter(
       (skill) =>
-        skill.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        skill.skill_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         skill.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        skill.skill_name.toLowerCase().includes(searchTerm.toLowerCase()),
+        skill.user_name.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     setFilteredSkills(filtered)
   }, [searchTerm, skills])
@@ -60,29 +62,35 @@ export default function SkillsPage() {
   }
 
   if (isLoading) {
-    return <div>Loading skills...</div>
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="mr-2 h-16 w-16 animate-spin text-gray-500" />
+      </div>
+    )
   }
 
+  console.log(skills);
+  
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">All Skills</h1>
+    <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold mb-4 text-gray-800">All Skills</h1>
       <div className="mb-4">
         <Input
           type="text"
           placeholder="Search skills..."
           value={searchTerm}
           onChange={handleSearch}
-          className="w-full max-w-md"
+          className="w-full max-w-md border-gray-300 focus:border-gray-500"
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredSkills.map((skill) => (
-          <Card key={skill.id}>
+          <Card key={skill.id} className="bg-white shadow-sm">
             <CardHeader>
-              <CardTitle>{skill.skill_name}</CardTitle>
+              <CardTitle className="text-gray-700">{skill.skill_name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{skill.description}</p>
+              <p className="text-gray-600">{skill.description}</p>
               <div className="mt-2 text-sm text-gray-500">
                 <p>by {skill.user_name}</p>
                 <p>Added on: {new Date(skill.created_at).toLocaleDateString()}</p>
@@ -91,9 +99,7 @@ export default function SkillsPage() {
           </Card>
         ))}
       </div>
-      {filteredSkills.length === 0 && (
-        <p className="text-center mt-4">No skills found matching your search criteria.</p>
-      )}
+      
     </div>
   )
 }

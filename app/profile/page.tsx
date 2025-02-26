@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {  updateUserProfile, type User } from "@/lib/api"
+import {  getUserInfo, updateUserProfile, type User } from "@/lib/api"
 import { toast } from "@/components/ui/use-toast"
 
 export default function ProfilePage() {
@@ -28,6 +28,8 @@ export default function ProfilePage() {
 
       try {
         const userData = await getUserInfo(token)
+        console.log("User data:", userData);
+        
         setUser(userData)
         setEditedUser(userData)
       } catch (error) {
