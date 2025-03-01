@@ -3,35 +3,42 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import { getAllSkillsWithUsers, type SkillWithUser } from "@/lib/api"
 import { toast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<SkillWithUser[]>([])
   const [filteredSkills, setFilteredSkills] = useState<SkillWithUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter()
 
   useEffect(() => {
     const fetchSkills = async () => {
       try {
         const token = localStorage.getItem("token")
-        if (!token) {
+        const userId = localStorage.getItem("userId")
+        if (!token || !userId) {
           toast({
             title: "Authentication Error",
             description: "Please log in to view skills.",
             variant: "destructive",
           })
+          router.push("/login")
           return
         }
         const fetchedSkills = await getAllSkillsWithUsers(token)
-        
-        setSkills(fetchedSkills)
-        setFilteredSkills(fetchedSkills)
+        // Filter out the current user's skills
+        const filteredSkills = fetchedSkills.filter((skill) => skill.user_id !== userId)
+        setSkills(filteredSkills)
+        setFilteredSkills(filteredSkills)
       } catch (error) {
+        console.error("Failed to fetch skills:", error)
         toast({
           title: "Error",
           description: "Failed to fetch skills. Please try again.",
@@ -43,7 +50,8 @@ export default function SkillsPage() {
     }
 
     fetchSkills()
-  }, [])
+  }, [router])
+  
 
   useEffect(() => {
     const filtered = skills.filter(
@@ -59,6 +67,10 @@ export default function SkillsPage() {
     setSearchTerm(e.target.value)
   }
 
+  const handleSkillClick = (userId: string) => {
+    router.push(`/user/${userId}`)
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -67,36 +79,46 @@ export default function SkillsPage() {
     )
   }
 
-  
   return (
     <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800">All Skills</h1>
-      <div className="mb-4">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Explore Skills</h1>
+      <div className="mb-6 relative">
         <Input
           type="text"
-          placeholder="Search skills..."
+          placeholder="Search skills, descriptions, or users..."
           value={searchTerm}
           onChange={handleSearch}
-          className="w-full max-w-md border-gray-300 focus:border-gray-500"
+          className="w-full max-w-md border-gray-300 focus:border-gray-500 pl-10"
         />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSkills.map((skill) => (
-          <Card key={skill.id} className="bg-white shadow-sm">
+          <Card
+            key={skill.id}
+            className="bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
+            onClick={() => handleSkillClick(skill.user_id)}
+          >
             <CardHeader>
-              <CardTitle className="text-gray-700">{skill.skill_name}</CardTitle>
+              <CardTitle className="text-xl font-semibold text-gray-700">{skill.skill_name}</CardTitle>
+              {skill.level && (
+                <Badge variant="secondary" className="text-xs">
+                  {skill.level}
+                </Badge>
+              )}
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">{skill.description}</p>
-              <div className="mt-2 text-sm text-gray-500">
-                <p>by {skill.user_name}</p>
-                <p>Added on: {new Date(skill.created_at).toLocaleDateString()}</p>
-              </div>
+              <p className="text-gray-600 mb-2">{skill.description}</p>
+              <p className="text-sm text-gray-500">
+                by <span className="font-medium">{skill.user_name}</span>
+              </p>
             </CardContent>
           </Card>
         ))}
       </div>
-      
+      {filteredSkills.length === 0 && (
+        <p className="text-center mt-8 text-gray-600">No skills found matching your search criteria.</p>
+      )}
     </div>
   )
 }

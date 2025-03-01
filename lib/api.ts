@@ -15,16 +15,19 @@ export interface User {
   profilePicture: string
 }
 
-export interface Skill {
+interface Skill {
   id: string
   name: string
   description: string
+  level?: string
 }
 
 export interface SkillWithUser extends Skill {
+  skill_name: string
   user_id: string
   user_name: string
   created_at: string
+  level: string
 }
 
 const api = axios.create({
@@ -107,7 +110,7 @@ export async function getUserSkills(token: string, userId: string): Promise<Skil
 export async function addSkill(
   token: string,
   userId: string,
-  skill: { name: string; description: string },
+  skill: { name: string; description: string, level: string },
 ): Promise<Skill> {
   try {
     const response = await api.post<Skill>(
@@ -159,5 +162,3 @@ export async function getAllSkillsWithUsers(token: string): Promise<SkillWithUse
     throw new Error(error.response?.data?.message || "Failed to fetch all skills with users")
   }
 }
-
-
