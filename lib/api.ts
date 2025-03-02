@@ -97,31 +97,90 @@ export async function getUserSkills(token: string, userId: string): Promise<Skil
     const response = await api.get<Skill[]>(`/skills/user/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    console.log(userId);
-    console.log(response.data);
-    
-    
     return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to fetch user skills")
   }
 }
 
-export async function addSkill(
-  token: string,
-  userId: string,
-  skill: { name: string; description: string, level: string },
-): Promise<Skill> {
+export async function addUserSkill(token: string, skillName: string): Promise<Skill> {
   try {
     const response = await api.post<Skill>(
-      `/skills/addskill/${userId}`,
-      { ...skill},
+      `/skills/addskill`,
+      { name: skillName },
       {
         headers: { Authorization: `Bearer ${token}` },
       },
     )
-    console.log("response", response.data);
-    
+    return response.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to add skill")
+  }
+}
+
+export async function removeUserSkill(token: string, skillId: string): Promise<void> {
+  try {
+    await api.delete(`/skills/${skillId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to remove skill")
+  }
+}
+
+export async function getAllSkills(token: string): Promise<Skill[]> {
+  try {
+    const response = await api.get<Skill[]>("/skills", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    return response.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to fetch skills")
+  }
+}
+
+export async function getUserMatches(userId: string, token: string): Promise<any[]> {
+  try {
+    const response = await api.get(`/matches/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    return response.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to fetch user matches")
+  }
+}
+
+export async function getUserReviews(userId: string, token: string): Promise<any> {
+  try {
+    const response = await api.get(`/reviews/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    return response.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to fetch user reviews")
+  }
+}
+
+export async function getAllSkillsWithUsers(token: string): Promise<SkillWithUser[]> {
+  try {
+    const response = await api.get<SkillWithUser[]>("/skills", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    return response.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to fetch all skills with users")
+  }
+}
+
+export async function addSkill(
+  token: string,
+  userId: string,
+  skill: { name: string; description: string; level: string },
+): Promise<Skill> {
+  try {
+    const response = await api.post<Skill>(`/skills/addskill/${userId}`, skill, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to add skill")
@@ -133,8 +192,6 @@ export async function updateSkill(token: string, skillId: string, skill: Partial
     const response = await api.put<Skill>(`/skills/${skillId}`, skill, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    console.log(skillId, skill);
-    
     return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to update skill")
@@ -151,14 +208,3 @@ export async function deleteSkill(token: string, skillId: string): Promise<void>
   }
 }
 
-export async function getAllSkillsWithUsers(token: string): Promise<SkillWithUser[]> {
-  try {
-    const response = await api.get<SkillWithUser[]>("/skills", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    
-    return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch all skills with users")
-  }
-}

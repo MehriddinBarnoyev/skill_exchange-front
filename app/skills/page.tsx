@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { getAllSkillsWithUsers, type SkillWithUser } from "@/lib/api"
 import { toast } from "@/components/ui/use-toast"
-import { Loader2, Search } from "lucide-react"
+import { Loader2, Search, AlertCircle } from "lucide-react"
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<SkillWithUser[]>([])
@@ -51,7 +51,6 @@ export default function SkillsPage() {
 
     fetchSkills()
   }, [router])
-  
 
   useEffect(() => {
     const filtered = skills.filter(
@@ -92,32 +91,43 @@ export default function SkillsPage() {
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSkills.map((skill) => (
-          <Card
-            key={skill.id}
-            className="bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
-            onClick={() => handleSkillClick(skill.user_id)}
-          >
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-700">{skill.skill_name}</CardTitle>
-              {skill.level && (
-                <Badge variant="secondary" className="text-xs">
-                  {skill.level}
-                </Badge>
-              )}
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-2">{skill.description}</p>
-              <p className="text-sm text-gray-500">
-                by <span className="font-medium">{skill.user_name}</span>
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      {filteredSkills.length === 0 && (
-        <p className="text-center mt-8 text-gray-600">No skills found matching your search criteria.</p>
+      {filteredSkills.length === 0 ? (
+        <Card className="bg-white shadow-sm">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">No Skills Found</h2>
+            <p className="text-gray-600">
+              {searchTerm
+                ? "No skills match your search criteria. Try adjusting your search terms."
+                : "There are currently no skills available. Check back later or be the first to add a skill!"}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredSkills.map((skill) => (
+            <Card
+              key={skill.id}
+              className="bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
+              onClick={() => handleSkillClick(skill.user_id)}
+            >
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-700">{skill.skill_name}</CardTitle>
+                {skill.level && (
+                  <Badge variant="secondary" className="text-xs">
+                    {skill.level}
+                  </Badge>
+                )}
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-2">{skill.description}</p>
+                <p className="text-sm text-gray-500">
+                  by <span className="font-medium">{skill.user_name}</span>
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   )
