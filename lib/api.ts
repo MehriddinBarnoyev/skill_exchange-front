@@ -2,20 +2,43 @@ import axios from "axios"
 
 const API_URL = "http://localhost:5000/api"
 
-export interface AuthResponse {
-  token: string
-  user: User
+// Types
+export interface ConnectionRequest {
+  id: string
+  sender_id: string
+  receiver_id: string
+  status: "pending" | "accepted" | "rejected"
+  created_at: string
+  sender_name: string
+  sender_profile_picture?: string
+  sender_profession?: string
+}
+
+export interface Connection {
+  id: string
+  connected_user_id: string
+  connected_user_name: string
+  connected_user_profile_picture?: string
+  connected_user_profession?: string
+  status: "accepted"
+  created_at: string
 }
 
 export interface User {
   id: string
   name: string
   email: string
-  bio: string
-  profilePicture: string
+  profilePicture?: string
+  bio?: string
+  is_profile_complete?: boolean
+  location?: string
+  profession?: string
+  education?: string
+  birth_date?: string
+  interests?: string
 }
 
-interface Skill {
+export interface Skill {
   id: string
   name: string
   description: string
@@ -23,188 +46,192 @@ interface Skill {
 }
 
 export interface SkillWithUser extends Skill {
-  skill_name: string
   user_id: string
   user_name: string
-  created_at: string
-  level: string
 }
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-})
+// API client with authentication
+const apiClient = (token: string) => {
+  return axios.create({
+    baseURL: API_URL,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  })
+}
 
-export async function register(name: string, email: string, password: string): Promise<AuthResponse> {
+// User API functions
+export const getUserInfo = async (token: string, userId: string): Promise<User> => {
   try {
-    const response = await api.post<AuthResponse>("/auth/register", {
-      name,
-      email,
-      password,
-    })
+    const response = await apiClient(token).get(`/users/${userId}`)
     return response.data
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Registration failed!"
-    throw new Error(errorMessage)
+  } catch (error) {
+    console.error("Error fetching user info:", error)
+    throw error // Re-throw the error for handling in the calling function
   }
 }
 
-export async function login(email: string, password: string): Promise<AuthResponse> {
+export const updateUserProfile = async (token: string, user: User): Promise<User> => {
   try {
-    const response = await api.post<AuthResponse>("/auth/login", {
-      email,
-      password,
-    })
+    const response = await apiClient(token).put(`/users/${user.id}`, user)
     return response.data
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Login failed!"
-    throw new Error(errorMessage)
+  } catch (error) {
+    console.error("Error updating user profile:", error)
+    throw error
   }
 }
 
-export async function getUserInfo(token: string, userId: string): Promise<User> {
+export const completeUserProfile = async (token: string, userId: string, formData: any): Promise<User> => {
   try {
-    const response = await api.get<User>(`/users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const response = await apiClient(token).post(`/users/complete-profile/${userId}`, formData)
     return response.data
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to fetch user!"
-    throw new Error(errorMessage)
-  }
-}
-
-export async function updateUserProfile(token: string, userData: User): Promise<User> {
-  try {
-    const response = await api.put(`/users/${userData.id}`, userData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-    return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to update user profile")
+  } catch (error) {
+    console.error("Error completing user profile:", error)
+    throw error
   }
 }
 
 export async function getUserSkills(token: string, userId: string): Promise<Skill[]> {
   try {
-    const response = await api.get<Skill[]>(`/skills/user/${userId}`, {
+    const response = await apiClient(token).get<Skill[]>(`/skills/user/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
+    
     return response.data
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to fetch user skills")
   }
 }
 
-export async function addUserSkill(token: string, skillName: string): Promise<Skill> {
+export const addSkill = async (token: string, userId: string, skill: Skill): Promise<Skill> => {
   try {
-    const response = await api.post<Skill>(
-      `/skills/addskill`,
-      { name: skillName },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    )
+    const response = await apiClient(token).post(`/skills/addskill/${userId}`, skill)
     return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to add skill")
+  } catch (error) {
+    console.error("Error adding skill:", error)
+    throw error
   }
 }
 
-export async function removeUserSkill(token: string, skillId: string): Promise<void> {
+export const updateSkill = async (token: string, skillId: string, skill: Skill): Promise<Skill> => {
   try {
-    await api.delete(`/skills/${skillId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to remove skill")
-  }
-}
-
-export async function getAllSkills(token: string): Promise<Skill[]> {
-  try {
-    const response = await api.get<Skill[]>("/skills", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const response = await apiClient(token).put(`/skills/${skillId}`, skill)
     return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch skills")
+  } catch (error) {
+    console.error("Error updating skill:", error)
+    throw error
   }
 }
 
-export async function getUserMatches(userId: string, token: string): Promise<any[]> {
+export const deleteSkill = async (token: string, skillId: string): Promise<void> => {
   try {
-    const response = await api.get(`/matches/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    await apiClient(token).delete(`/skills/${skillId}`)
+  } catch (error) {
+    console.error("Error deleting skill:", error)
+    throw error
+  }
+}
+
+export const getAllSkillsWithUsers = async (token: string): Promise<SkillWithUser[]> => {
+  try {
+    const response = await apiClient(token).get("/skills")
     return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch user matches")
+  } catch (error) {
+    console.error("Error fetching all skills with users:", error)
+    throw error
   }
 }
 
-export async function getUserReviews(userId: string, token: string): Promise<any> {
-  try {
-    const response = await api.get(`/reviews/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch user reviews")
-  }
+export const connectionApi = {
+  getConnectionRequests: async (userId: string, token: string): Promise<ConnectionRequest[]> => {
+    try {
+      const response = await apiClient(token).get(`/connections/${userId}`)
+      return response.data
+    } catch (error) {
+      console.error("Error fetching connection requests:", error)
+      throw handleApiError(error, "Failed to fetch connection requests")
+    }
+  },
+  sendConnectionRequest: async (
+    senderId: string,
+    receiverId: string,
+    token: string,
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiClient(token).post(`/connections/request`, {
+        sender_id: senderId,
+        receiver_id: receiverId,
+      })
+      return { success: true, message: "Connection request sent successfully" }
+    } catch (error) {
+      console.error("Error sending connection request:", error)
+      throw handleApiError(error, "Failed to send connection request")
+    }
+  },
+  respondToRequest: async (
+    requestId: string,
+    action: "accepted" | "rejected",
+    token: string,
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiClient(token).put(`/connections/respond`, { request_id: requestId, action })
+      return {
+        success: true,
+        message: action === "accepted" ? "Connection request accepted" : "Connection request rejected",
+      }
+    } catch (error) {
+      console.error("Error responding to connection request:", error)
+      throw handleApiError(error, "Failed to respond to connection request")
+    }
+  },
+  getUserConnections: async (userId: string, token: string): Promise<Connection[]> => {
+    try {
+      const response = await apiClient(token).get(`/connections/accepted/${userId}`)
+      return response.data
+    } catch (error) {
+      console.error("Error fetching user connections:", error)
+      throw handleApiError(error, "Failed to fetch connections")
+    }
+  },
+  getUserProfile: async (userId: string, token: string): Promise<User> => {
+    try {
+      const response = await apiClient(token).get(`/users/${userId}`)
+      return response.data
+    } catch (error) {
+      console.error("Error fetching user profile:", error)
+      throw error
+    }
+  },
+  getFriends: async (userId: string, token: string): Promise<Connection[]> => {
+    try {
+      const response = await apiClient(token).get(`/connections/friends/${userId}`)
+      return response.data
+    } catch (error) {
+      console.error("Error fetching friends:", error)
+      throw handleApiError(error, "Failed to fetch friends")
+    }
+  },
 }
 
-export async function getAllSkillsWithUsers(token: string): Promise<SkillWithUser[]> {
-  try {
-    const response = await api.get<SkillWithUser[]>("/skills", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch all skills with users")
-  }
-}
+// Error handling helper
+function handleApiError(error: any, defaultMessage: string): Error {
+  if (axios.isAxiosError(error)) {
+    // Handle Axios errors
+    const status = error.response?.status
+    const errorMessage = error.response?.data?.error || error.response?.data?.message
 
-export async function addSkill(
-  token: string,
-  userId: string,
-  skill: { name: string; description: string; level: string },
-): Promise<Skill> {
-  try {
-    const response = await api.post<Skill>(`/skills/addskill/${userId}`, skill, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to add skill")
+    if (status === 401) {
+      return new Error("Authentication required. Please log in again.")
+    } else if (status === 403) {
+      return new Error("You don't have permission to perform this action.")
+    } else if (status === 404) {
+      return new Error("The requested resource was not found.")
+    } else if (errorMessage) {
+      return new Error(errorMessage)
+    }
   }
-}
 
-export async function updateSkill(token: string, skillId: string, skill: Partial<Skill>): Promise<Skill> {
-  try {
-    const response = await api.put<Skill>(`/skills/${skillId}`, skill, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    return response.data
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to update skill")
-  }
-}
-
-export async function deleteSkill(token: string, skillId: string): Promise<void> {
-  try {
-    await api.delete(`/skills/${skillId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to delete skill")
-  }
+  return new Error(defaultMessage)
 }
 

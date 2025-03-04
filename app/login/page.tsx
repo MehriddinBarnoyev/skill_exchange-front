@@ -8,10 +8,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { login, verifyOtp } from "@/lib/authApi"
 import { Loader2 } from "lucide-react"
+import { ProfileCompletionModal } from "@/components/ProfileCompletionModal"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [otpSent, setOtpSent] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [showCompleteProfile, setShowCompleteProfile] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,7 +57,7 @@ export default function LoginPage() {
     }
   }
 
-  const handleSuccessfulLogin = (response: { token?: string; user_id: string }) => {
+  const handleSuccessfulLogin = (response: { token?: string; user_id: string; is_profile_complete?: boolean }) => {
     if (response.token) {
       localStorage.setItem("token", response.token)
       localStorage.setItem("userId", response.user_id)
@@ -63,10 +65,19 @@ export default function LoginPage() {
         title: "Login Successful",
         description: "You have been successfully logged in.",
       })
-      router.push(`/profile/${response.user_id}`)
+      if (response.is_profile_complete === false) {
+        setShowCompleteProfile(true)
+      } else {
+        router.push(`/profile/${response.user_id}`)
+      }
     } else {
       setError("Login failed: No token received")
     }
+  }
+
+  const handleProfileComplete = () => {
+    setShowCompleteProfile(false)
+    router.push(`/profile/${userId}`)
   }
 
   return (
@@ -138,6 +149,16 @@ export default function LoginPage() {
           </div>
         </CardFooter>
       </Card>
+      {showCompleteProfile && userId && (
+        <ProfileCompletionModal
+          userId={userId}
+          onComplete={handleProfileComplete}
+          onClose={() => {
+            setShowCompleteProfile(false)
+            router.push(`/profile/${userId}`)
+          }}
+        />
+      )}
     </div>
   )
 }

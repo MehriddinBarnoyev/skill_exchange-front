@@ -1,32 +1,33 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { ConnectionRequestBadge } from "@/components/ConnectionRequestBadge"
 
 export function Navbar() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const pathname = usePathname()
+  const router = useRouter()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUserId = localStorage.getItem("userId");
-    setIsLoggedIn(!!token);
-    setUserId(storedUserId);
-  }, []);
+    const token = localStorage.getItem("token")
+    const storedUserId = localStorage.getItem("userId")
+    setIsLoggedIn(!!token)
+    setUserId(storedUserId)
+  }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    setIsLoggedIn(false);
-    setUserId(null);
-    router.push("/");
-  };
+    localStorage.removeItem("token")
+    localStorage.removeItem("userId")
+    setIsLoggedIn(false)
+    setUserId(null)
+    router.push("/")
+  }
 
   return (
     <nav className="bg-background border-b">
@@ -54,6 +55,9 @@ export function Navbar() {
                 <Button asChild variant="ghost">
                   <Link href={`/profile/${userId}`}>Profile</Link>
                 </Button>
+                <div className="mr-4">
+                  <ConnectionRequestBadge />
+                </div>
                 <Button onClick={handleLogout}>Logout</Button>
               </>
             ) : (
@@ -70,18 +74,10 @@ export function Navbar() {
         </div>
       </div>
     </nav>
-  );
+  )
 }
 
-function NavLink({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
+function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
   return (
     <Link
       href={href}
@@ -93,5 +89,6 @@ function NavLink({
     >
       {children}
     </Link>
-  );
+  )
 }
+

@@ -8,10 +8,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import { register, verifyOtp } from "@/lib/authApi"
 import { Loader2 } from "lucide-react"
+import { ProfileCompletionModal } from "@/components/ProfileCompletionModal"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -22,6 +23,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [otpSent, setOtpSent] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [showCompleteProfile, setShowCompleteProfile] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,10 +67,15 @@ export default function RegisterPage() {
         title: "Registration Successful",
         description: "Your account has been created successfully.",
       })
-      router.push(`/profile/${response.user_id}`)
+      // setShowCompleteProfile(true)
     } else {
       setError("Registration failed: No token received")
     }
+  }
+
+  const handleProfileComplete = () => {
+    setShowCompleteProfile(false)
+    router.push(`/profile/${userId}`)
   }
 
   return (
@@ -130,6 +137,7 @@ export default function RegisterPage() {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     required
+                    className={error ? "border-red-500" : ""}
                   />
                 </div>
               )}
@@ -160,6 +168,20 @@ export default function RegisterPage() {
           </div>
         </CardFooter>
       </Card>
+      {showCompleteProfile && userId && (
+        <ProfileCompletionModal
+          userId={userId}
+          onComplete={handleProfileComplete}
+          onClose={() => {
+            // For registration, we don't want to allow skipping profile completion
+            toast({
+              title: "Profile Completion Required",
+              description: "Please complete your profile to continue.",
+              variant: "destructive",
+            })
+          }}
+        />
+      )}
     </div>
   )
 }

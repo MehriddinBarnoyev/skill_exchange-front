@@ -6,12 +6,14 @@ export interface AuthResponse {
   message: string
   token?: string
   user_id: string
+  is_profile_complete?: boolean
 }
 
 export interface User {
   id: string
   name: string
   email: string
+  is_profile_complete: boolean
 }
 
 interface RegisterInput {
@@ -39,7 +41,7 @@ const api = axios.create({
   },
 })
 
-export async function register(name: string, email: string, password: string, input: RegisterInput): Promise<AuthResponse> {
+export async function register(input: RegisterInput): Promise<AuthResponse> {
   try {
     const response = await api.post<AuthResponse>("/auth/register", input)
     return response.data
